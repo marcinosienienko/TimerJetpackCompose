@@ -6,10 +6,15 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -36,6 +42,23 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            Surface(
+                color = Color(0xFF101010),
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center
+                ){
+                    Timer(
+                        totalTime = 100 * 1000L,
+                        handleColor = Color.Green,
+                        inactiveBarColor = Color.DarkGray,
+                        activeBarColor = Color(0xFF37B900),
+                        modifier = Modifier.size(200.dp)
+                    )
+                }
+            }
 
         }
     }
@@ -48,8 +71,8 @@ fun Timer(
     inactiveBarColor: Color,
     activeBarColor: Color,
     modifier: Modifier = Modifier,
-    initialValue: Float = 0f,
-    strokeWidth: Dp = 10.dp
+    initialValue: Float = 1f,
+    strokeWidth: Dp = 5.dp
 
 ) {
     var size by remember {
@@ -63,6 +86,14 @@ fun Timer(
     }
     var isTimerRunning by remember {
         mutableStateOf(false)
+    }
+
+    LaunchedEffect(key1 = currentTime, key2 = isTimerRunning) {
+        if(currentTime > 0 && isTimerRunning) {
+            delay(100L)
+            currentTime -= 100L
+            value = currentTime / totalTime.toFloat()
+        }
     }
     Box(
         contentAlignment = Alignment.Center,
@@ -107,26 +138,26 @@ fun Timer(
             color = Color.White
         )
         Button(
-            onClick = { /*TODO*/ },
-            modifier = Modifier.align(Alignment.BottomCenter)
-                .background(
-                    color = if (!isTimerRunning || currentTime <= 0L) {
+            onClick = {
+                      if(currentTime <= 0L) {
+                          currentTime = totalTime
+                          isTimerRunning = true
+                      } else {
+                    isTimerRunning = !isTimerRunning
+                }
+            },
+
+            modifier = Modifier.align(Alignment.BottomCenter),
+            colors = ButtonDefaults.buttonColors(
+                if (!isTimerRunning || currentTime <= 0L) {
                         Color.Green
                     } else {
                         Color.Red
                     }
-                ),
-//            colors = ButtonDefaults.buttonColors(
-//
-//                background = if (!isTimerRunning || currentTime <= 0L) {
-//                    Color.Green
-//                } else {
-//                    Color.Red
-//                }
-//            )
+            )
         ) {
-            Text( if(!isTimerRunning && currentTime >= 0L) "START"
-            else if(isTimerRunning && currentTime <= 0L )"STOP"
+            Text( if(isTimerRunning && currentTime >= 0L) "STOP"
+            else if(!isTimerRunning && currentTime >= 0L )"START"
                 else "RESTART"
                 )
         }
